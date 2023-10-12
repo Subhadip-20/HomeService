@@ -24,7 +24,7 @@ $user_email =$_POST['UID'];
 $user_password =$_POST['password'];
 
 // Prepare the SQL query to fetch data based on the provided email
-$sql = "SELECT c_password FROM sprovider WHERE email_id = '$user_email' LIMIT 1";
+$sql = "SELECT p_password FROM sprovider WHERE email_id = '$user_email' LIMIT 1";
 $validUser = false;
 // Execute the query
 $result = mysqli_query($conn, $sql);
@@ -37,7 +37,7 @@ if (!$result) {
 if (mysqli_num_rows($result) === 1) {
     // Fetch the hashed password from the result
     $row = mysqli_fetch_assoc($result);
-    $hashed_password = $row['c_password'];
+    $hashed_password = $row['p_password'];
    
     // Verify the provided password against the hashed password
     if (password_verify( $user_password , $hashed_password)) {

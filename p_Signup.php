@@ -1,75 +1,62 @@
-<html>
-<body>
- <?php
-    if(isset($_POST['UID'])&& isset($_POST['number']) &&isset($_POST['services']) && isset($_POST['email'])  && isset($_POST['country']) && isset($_POST['state']) && isset($_POST['c_name']) && isset($_POST['h_num']) && isset($_POST['district']) && isset($_POST['p_code']) && isset($_POST['password'])){
-        // Database connection details
-        $hostname = 'localhost';  // e.g., 'localhost'
-        $username = 'root';  // Your database username
-        $password = '';  // Your database password
-        $database = 'homeservice';  // Your database name
-
-
-            echo("working");
-            echo("<br>");
-            // Create a database connection
-            $conn = mysqli_connect($hostname, $username, $password, $database);
-
-       // Check the connection
-       if (!$conn) {
-             die("Connection failed: " . mysqli_connect_error());
-         }
-    echo("working");
-    echo("<br>");
-    // Check if the registration form is submitted
-    $name = $_POST['UID'];
-    $contact =$_POST['number'];
-    $email =$_POST['email'];
-    $password =$_POST['password'];
-    $country =$_POST['country'];
-    $state = $_POST['state'];
-    $city = $_POST['c_name'];
-    $dist = $_POST['district'];
-    $pin = $_POST['p_code'];
-    $houseNo =$_POST['h_num'];
-    $service =$_POST['services'];
-
-    // Begin a transaction to ensure data consistency
-    mysqli_autocommit($conn, false);
-    $success = true;
-
-    // Insert the address data into the "address" table
-    $addressQuery = "INSERT INTO addresss (country, add_state, city, dist, pin, house_no) VALUES ('$country', '$state', '$city', '$dist', '$pin', '$houseNo')";
-    if (!mysqli_query($conn, $addressQuery)) {
-        $success = false;
-    }
-
-    // Get the auto-generated address ID
-    $addressId = mysqli_insert_id($conn);
-
-    // Insert the customer data into the "customer" table with the address ID as a foreign key
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $customerQuery = "INSERT INTO customer (c_password, c_name, contact_no, email_id, add_id ,) VALUES ('$hashedPassword', '$name', '$contact', '$email', '$addressId')";
-    if (!mysqli_query($conn, $customerQuery)) {
-        $success = false;
-    }
-
-    // Commit or rollback the transaction based on success
-    if ($success) {
-        mysqli_commit($conn);
-        echo "Registration successful!";
-    } else {
-        mysqli_rollback($conn);
-        echo "Registration failed. Please try again.";
-    }
-
-    // Close the database connection
-    mysqli_close($conn);
-
-    }
-
- ?>   
-</body>
-</html>
 <?php
+$hostname = 'localhost';
+$username = 'root';
+$password = '';
+$database = 'homeservice';
+if(isset($_POST['UID'])&& isset($_POST['number']) &&isset($_POST['services']) && isset($_POST['email'])  && isset($_POST['country']) && isset($_POST['state']) && isset($_POST['c_name']) && isset($_POST['h_num']) && isset($_POST['district']) && isset($_POST['p_code']) && isset($_POST['password'])){
+    
+        // Create a connection to the database
+        $conn = new mysqli($hostname, $username, $password, $database);
 
+        // Check the connection
+    if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+        }
+
+        // Handle the form submission and capture data
+        $p_name = $_POST['UID'];
+        $contact_no = $_POST['number'];
+        $email_id = $_POST['email'];
+        $country = $_POST['country'];
+        $add_state = $_POST['state'];
+        $city = $_POST['c_name'];
+        $dist = $_POST['district'];
+        $pin = $_POST['p_code'];
+        $h_num = $_POST['h_num'];
+        $services = $_POST['services'];
+        $p_password = $_POST['password'];
+
+        // Hash the password
+        $hashedPassword = password_hash($p_password, PASSWORD_DEFAULT);
+
+        // Insert address data into the 'address' table
+        $address_query = "INSERT INTO addresss (country, add_state, city, dist, pin, house_no) VALUES ('$country', '$add_state', '$city', '$dist', '$pin', '$h_num')";
+        if ($conn->query($address_query) === TRUE) {
+              $add_id = $conn->insert_id; // Get the auto-generated add_id
+        } else {
+              echo "Error inserting address: " . $conn->error;
+        }
+
+        // Assuming $services is the user's selected service
+        $services_query = "SELECT s_id FROM services WHERE s_name = '$services'";
+        $services_result = $conn->query($services_query);
+
+        if ($services_result->num_rows > 0) {
+        $row = $services_result->fetch_assoc();
+        $s_id = $row['s_id'];
+        } else {
+          echo "Service not found in the 'services' table.";
+        }   
+
+// Insert data into the 'sprovider' table
+$sprovider_query = "INSERT INTO sprovider (p_password, p_name, contact_no, email_id, add_id, s_id) VALUES ('$hashedPassword','$p_name', '$contact_no', '$email_id', '$add_id', '$s_id')";
+if ($conn->query($sprovider_query) === TRUE) {
+    echo "Registration successful!";
+} else {
+    echo "Error inserting sprovider: " . $conn->error;
+}
+
+// Close the database connection
+$conn->close();
+}
 ?>
